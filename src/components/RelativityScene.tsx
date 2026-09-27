@@ -1,18 +1,17 @@
 import { useLanguage, sceneLabel } from "../i18n";
 import { introSnapshot } from "../physics/intro";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   C,
+  frameGeometry,
+  trackPhase,
   TRAIN_PROPER_LENGTH,
   TUNNEL_PROPER_LENGTH,
   doorEvents,
-  doorClosed,
   frameTime,
   transformSpaceTime,
-  trainMidpoint,
-  tunnelLandmark,
   getTrainLength,
   getTunnelLength,
   lorentzGamma,
@@ -20,9 +19,6 @@ import {
   fmt,
   sensorEvents,
   gateProgress,
-  gatePhase,
-  shutterDuration,
-  eventAnchor,
 } from "../physics/model";
 import type { Frame } from "../physics/model";
 import type { CameraView } from "../stages/stages";
@@ -351,19 +347,8 @@ function EventMarker({
   color: string;
   label: string;
 }) {
-  const group = useRef<THREE.Group>(null);
-  useFrame((_, dt) => {
-    if (group.current)
-      group.current.position.x = THREE.MathUtils.lerp(
-        group.current.position.x,
-        x,
-        matchMedia("(prefers-reduced-motion: reduce)").matches
-          ? 1
-          : 1 - Math.exp(-dt * 9),
-      );
-  });
   return (
-    <group ref={group} position={[0, 0.18, 1.45]} visible={visible}>
+    <group position={[x, 0.18, 1.45]} visible={visible}>
       <mesh rotation={[Math.PI / 2, 0, 0]}>
         <torusGeometry args={[0.17, 0.025, 10, 32]} />
         <meshBasicMaterial color={color} />
@@ -513,9 +498,25 @@ function World(p: SceneProps) {
   // Frame transition changes a boost continuously. Outside transition, positions
   // follow the explicit simulation clock exactly, without a physics-lag filter.
   const blend = useRef(p.frame === "train" ? 1 : 0);
-  const [renderState] = useMemo(() => [{ trainScale: 1, tunnelScale: 1 }], []);
-  const trainGeometry = useRef<THREE.Group>(null),
-    tunnelGeometry = useRef<THREE.Group>(null);
+  const [visualBlend, setVisualBlend] = useState(blend.current);
+  const transition = useRef({
+    from: blend.current,
+    to: blend.current,
+    elapsed: 0.65,
+  });
+  const geometry = frameGeometry(p.time, p.beta, visualBlend);
+  const visualTime = THREE.MathUtils.lerp(
+    p.time,
+    frameTime(p.time, "train", p.beta),
+    visualBlend,
+  );
+  const visualEvent = (e: { x: number; t: number }) => {
+    const transformed = transformSpaceTime(e, "train", p.beta);
+    return {
+      x: THREE.MathUtils.lerp(e.x, transformed.x, visualBlend),
+      t: THREE.MathUtils.lerp(e.t, transformed.t, visualBlend),
+    };
+  };
   useEffect(() => {
     const m = matchMedia("(prefers-reduced-motion: reduce)");
     const update = () => {
@@ -528,40 +529,30 @@ function World(p: SceneProps) {
     if (p.paradox) return;
     const ease = reduced.current ? 1 : 1 - Math.exp(-dt * 9);
     const dest = p.frame === "train" ? 1 : 0;
-    blend.current = THREE.MathUtils.lerp(blend.current, dest, ease);
-    if (Math.abs(blend.current - dest) < 0.0001) blend.current = dest;
-    const b = blend.current,
-      g = lorentzGamma(p.beta),
-      tx = THREE.MathUtils.lerp(p.beta * C * p.time, 0, b) * SCALE,
-      ux = THREE.MathUtils.lerp(0, (-p.beta * C * p.time) / g, b) * SCALE;
+    if (transition.current.to !== dest)
+      transition.current = { from: blend.current, to: dest, elapsed: 0 };
+    const tr = transition.current;
+    tr.elapsed = Math.min(0.65, tr.elapsed + dt);
+    const u = reduced.current ? 1 : tr.elapsed / 0.65;
+    blend.current = THREE.MathUtils.lerp(tr.from, tr.to, u * u * (3 - 2 * u));
+    if (visualBlend !== blend.current) setVisualBlend(blend.current);
+    const b = visualBlend,
+      tx = geometry.trainX * SCALE,
+      ux = geometry.tunnelX * SCALE;
     train.current!.position.x = tx;
     tunnel.current!.position.x = ux;
-    track.current!.position.x = ux;
-    track.current!.scale.x = THREE.MathUtils.lerp(1, 1 / g, b);
-    renderState.trainScale = THREE.MathUtils.lerp(1 / g, 1, b);
-    renderState.tunnelScale = THREE.MathUtils.lerp(1, 1 / g, b);
-    // Geometries are driven by actual frame props, with only transition delta eased.
-    trainGeometry.current!.scale.x =
-      renderState.trainScale / (p.frame === "train" ? 1 : 1 / g);
-    tunnelGeometry.current!.scale.x =
-      renderState.tunnelScale / (p.frame === "tunnel" ? 1 : 1 / g);
-    const halfTrain =
-        (TRAIN_PROPER_LENGTH * renderState.trainScale * SCALE) / 2,
-      halfTunnel = (TUNNEL_PROPER_LENGTH * renderState.tunnelScale * SCALE) / 2;
-    const sensors = sensorEvents(p.beta);
-    const relayTime = eventAnchor(sensors[1].tunnel, p.frame, p.beta);
-    const sensorX =
-      tunnelLandmark(sensors[0].tunnel.x, p.time, p.frame, p.beta) * SCALE;
-    const lo = Math.min(
-        tx - halfTrain,
-        ux - halfTunnel,
-        p.signals && p.time <= relayTime ? sensorX - 0.5 : Infinity,
-      ),
-      hi = Math.max(tx + halfTrain, ux + halfTunnel),
-      focus = (lo + hi) / 2;
+    // The repeating ties translate continuously; wrapping by one tie spacing
+    // is visually identical and prevents the finite track running out.
+    const spacing = 0.6 * geometry.tunnelScale;
+    track.current!.position.x = trackPhase(ux, spacing);
+    track.current!.scale.x = geometry.tunnelScale;
+    // Camera framing depends on frame/viewport, never on playback time.
+    // S′ is anchored to the resting train, rather than following a moving
+    // train/tunnel bounding box. Distant S1 may be outside this local view.
+    const stationFocus = p.signals ? -2.5 : 0;
+    const focus = stationFocus * (1 - b);
     const fit = Math.max(
-      1,
-      (hi - lo + 2) / 11,
+      1.3,
       (size.width < 500 ? 1.3 : 1) / (size.width / size.height),
     );
     const poses = {
@@ -572,16 +563,26 @@ function World(p: SceneProps) {
     camera.position.lerp(new THREE.Vector3(...poses[p.camera]), ease);
     target.current.lerp(new THREE.Vector3(focus, 1.3, 0), ease);
     camera.lookAt(target.current);
+    gl.domElement.dataset.trainX = String(geometry.trainX);
+    gl.domElement.dataset.tunnelX = String(geometry.tunnelX);
+    gl.domElement.dataset.trackOffset = String(geometry.tunnelX);
+    gl.domElement.dataset.frameBlend = String(b);
+    gl.domElement.dataset.cameraX = String(camera.position.x);
     gl.domElement.dataset.trainLength = String(getTrainLength(p.frame, p.beta));
     gl.domElement.dataset.tunnelLength = String(
       getTunnelLength(p.frame, p.beta),
     );
   });
   const allowed = trainFitsInTunnel(p.beta),
-    q = frameTime(p.time, p.frame, p.beta),
-    g = lorentzGamma(p.beta);
+    q = frameTime(p.time, p.frame, p.beta);
   const progress = (["A", "B"] as const).map((id) =>
-    p.events || p.signals ? gateProgress(id, p.time, p.frame, p.beta) : 0,
+    p.events || p.signals
+      ? THREE.MathUtils.lerp(
+          gateProgress(id, p.time, "tunnel", p.beta),
+          gateProgress(id, p.time, "train", p.beta),
+          visualBlend,
+        )
+      : 0,
   ) as [number, number];
   useEffect(() => {
     gl.domElement.dataset.gateA = String(progress[0]);
@@ -598,9 +599,9 @@ function World(p: SceneProps) {
           <Track />
         </group>
         <group ref={tunnel}>
-          <group ref={tunnelGeometry}>
+          <group>
             <Tunnel
-              contraction={p.frame === "tunnel" ? 1 : 1 / g}
+              contraction={geometry.tunnelScale}
               progress={progress}
               received={
                 doorEvents.map(
@@ -614,13 +615,25 @@ function World(p: SceneProps) {
           </group>
           {p.lengths && (
             <Dimension
-              length={getTunnelLength(p.frame, p.beta)}
+              length={TUNNEL_PROPER_LENGTH * geometry.tunnelScale}
               y={2.3}
               z={-1.8}
               text={`TUNNEL · ${fmt(getTunnelLength(p.frame, p.beta), 1)} m`}
               color="#8bb9b8"
             />
           )}
+          {p.signals &&
+            sensorEvents(p.beta).map((e) => (
+              <Sensor
+                key={e.id}
+                id={e.id}
+                x={e.tunnel.x * geometry.tunnelScale * SCALE}
+                active={
+                  allowed &&
+                  q >= transformSpaceTime(e.tunnel, p.frame, p.beta).t
+                }
+              />
+            ))}
           {p.frame === "train" && p.signals && (
             <Label
               text="← TUNNEL + SENSORS MOVE"
@@ -630,12 +643,12 @@ function World(p: SceneProps) {
           )}
         </group>
         <group ref={train}>
-          <group ref={trainGeometry}>
-            <Train contraction={p.frame === "train" ? 1 : 1 / g} />
+          <group>
+            <Train contraction={geometry.trainScale} />
           </group>
           {p.lengths && (
             <Dimension
-              length={getTrainLength(p.frame, p.beta)}
+              length={TRAIN_PROPER_LENGTH * geometry.trainScale}
               y={-0.45}
               z={1.85}
               text={`TRAIN · ${fmt(getTrainLength(p.frame, p.beta), 1)} m`}
@@ -644,13 +657,19 @@ function World(p: SceneProps) {
           )}
         </group>
         {doorEvents.map((e, i) => {
-          const c = transformSpaceTime(e.tunnel, p.frame, p.beta),
-            age = q - c.t,
+          const c = visualEvent(e.tunnel),
+            age = visualTime - c.t,
             color = i ? "#e8bc72" : "#8ac4dd";
           return (
             <group key={e.id}>
               <EventMarker
-                x={c.x * SCALE}
+                x={
+                  THREE.MathUtils.lerp(
+                    e.tunnel.x,
+                    transformSpaceTime(e.tunnel, "train", p.beta).x,
+                    visualBlend,
+                  ) * SCALE
+                }
                 visible={p.events && allowed && age >= -1e-9}
                 color={color}
                 label={e.id + " RECEIVED HERE"}
@@ -660,20 +679,19 @@ function World(p: SceneProps) {
         })}
         {p.signals &&
           sensorEvents(p.beta).map((e, i) => {
-            const emission = transformSpaceTime(e.tunnel, p.frame, p.beta);
-            const age = q - emission.t;
+            const emission = visualEvent(e.tunnel);
+            const age = visualTime - emission.t;
             return (
               <group key={e.id}>
-                <Sensor
-                  id={e.id}
-                  x={
-                    tunnelLandmark(e.tunnel.x, p.time, p.frame, p.beta) * SCALE
-                  }
-                  active={allowed && age >= 0}
-                />
                 {allowed && age >= 0 && (
                   <Signal
-                    origin={emission.x * SCALE}
+                    origin={
+                      THREE.MathUtils.lerp(
+                        e.tunnel.x,
+                        transformSpaceTime(e.tunnel, "train", p.beta).x,
+                        visualBlend,
+                      ) * SCALE
+                    }
                     radius={C * age * SCALE}
                     color={i ? "#ffda65" : "#75cfff"}
                     opacity={
@@ -691,7 +709,13 @@ function World(p: SceneProps) {
                 )}
                 {allowed && age >= 0 && (
                   <EventMarker
-                    x={emission.x * SCALE}
+                    x={
+                      THREE.MathUtils.lerp(
+                        e.tunnel.x,
+                        transformSpaceTime(e.tunnel, "train", p.beta).x,
+                        visualBlend,
+                      ) * SCALE
+                    }
                     visible
                     label=""
                     color={i ? "#ffda65" : "#75cfff"}

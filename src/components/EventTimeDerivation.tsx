@@ -149,6 +149,20 @@ export function EventTimeDerivation({ beta }: { beta: number }) {
           )}
         </small>
       </div>
+      <div className="derivation-step">
+        <h4>
+          {t("总结 · 同时性的变换", "Summary · Transforming simultaneity")}
+        </h4>
+        <MathFormula
+          tex={String.raw`\begin{aligned}\Delta t'&=\gamma\left(\Delta t-\frac{v\Delta x}{c^2}\right)\\\Delta t=0\quad&\Longrightarrow\quad\Delta t'=-\frac{\gamma v\Delta x}{c^2}\end{aligned}`}
+        />
+        <small>
+          {t(
+            "Δx = xB − xA > 0；当 v > 0 时，Δt′ < 0。",
+            "Δx = xB − xA > 0; for v > 0, Δt′ < 0.",
+          )}
+        </small>
+      </div>
     </section>
   );
 }

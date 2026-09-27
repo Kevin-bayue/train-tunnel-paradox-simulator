@@ -277,5 +277,36 @@ export function playbackRate(anchor: number, frame: Frame, beta: number) {
     )
       return Math.max(0.002, duration / 2.2);
   }
-  return 0.25;
+  // Keep coordinate-time speed equal across frames outside gate slow motion.
+  // T = gamma * t′, so train-frame anchor speed needs a gamma factor.
+  return 0.25 * (frame === "train" ? lorentzGamma(beta) : 1);
+}
+
+// S coordinates define events; contracted S′ geometry must never be used as
+// input to transformSpaceTime (e.g. ±60 m is not the canonical ±100 m).
+export function stationLesson(beta: number) {
+  const relay = sensorEvents(beta)[1].tunnel;
+  const distances = doorEvents.map((e) => Math.abs(e.tunnel.x - relay.x));
+  return {
+    gamma: lorentzGamma(beta),
+    trainLength: getTrainLength("tunnel", beta),
+    tunnelLength: TUNNEL_PROPER_LENGTH,
+    fits: trainFitsInTunnel(beta),
+    distances,
+    propagationTimes: distances.map((d) => d / C),
+    relay,
+  };
+}
+// Presentation interpolation only. Endpoints are exact inertial-frame states.
+export function frameGeometry(anchor: number, beta: number, blend: number) {
+  const g = lorentzGamma(beta);
+  return {
+    trainX: trainMidpoint(anchor, "tunnel", beta) * (1 - blend),
+    tunnelX: tunnelLandmark(0, anchor, "train", beta) * blend,
+    trainScale: (1 - blend) / g + blend,
+    tunnelScale: 1 - blend + blend / g,
+  };
+}
+export function trackPhase(offset: number, spacing: number) {
+  return ((offset % spacing) + spacing) % spacing;
 }

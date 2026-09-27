@@ -74,7 +74,7 @@ function Lab({ setLanguage }: { setLanguage: (language: Language) => void }) {
       setBeta(0.8);
       clock.setPlaying(false);
       intro.replay();
-    } else {
+    } else if (index === 0) {
       clock.setTime(timelineBounds(beta).start);
       clock.setPlaying(trainFitsInTunnel(beta));
     }

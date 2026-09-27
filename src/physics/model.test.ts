@@ -301,13 +301,85 @@ describe("live gate-time derivation and playback", () => {
       for (const frame of ["tunnel", "train"] as const) {
         for (const event of doorEvents) {
           const start = eventAnchor(event.tunnel, frame, beta);
-          expect(playbackRate(start - 0.01, frame, beta)).toBe(0.25);
+          expect(playbackRate(start - 0.01, frame, beta)).toBe(
+            0.25 * (frame === "train" ? lorentzGamma(beta) : 1),
+          );
           let time = start - 0.02;
           for (let step = 0; step < 120 * 4; step++)
             time += playbackRate(time, frame, beta) / 120;
-          expect(gateProgress(event.id as "A" | "B", time, frame, beta)).toBe(1);
+          expect(gateProgress(event.id as "A" | "B", time, frame, beta)).toBe(
+            1,
+          );
         }
       }
     },
   );
+});
+
+import { StationDerivation } from "../components/StationDerivation";
+import { PhysicsPanel } from "../components/PhysicsPanel";
+import { stationLesson, frameGeometry, trackPhase } from "./model";
+describe("station lesson and true frame geometry", () => {
+  it.each([0, 0.5, 0.8, 0.9])(
+    "station explanation at beta=%s uses durations and keeps train times for stage 3",
+    (beta) => {
+      const m = stationLesson(beta);
+      expect(m.distances).toEqual([100, 100]);
+      expect(m.propagationTimes[0]).toBeCloseTo(0.333564, 6);
+      expect(m.relay.t + m.propagationTimes[0]).toBeCloseTo(0, 12);
+      expect(m.fits).toBe(beta >= 0.8);
+      expect(() =>
+        renderToStaticMarkup(createElement(StationDerivation, { beta })),
+      ).not.toThrow();
+      const html = renderToStaticMarkup(
+        createElement(PhysicsPanel, {
+          stage: stages[1],
+          beta,
+          frame: "tunnel",
+          time: 0,
+          axes: true,
+          paradox: false,
+          introProgress: 0,
+        }),
+      );
+      expect(html).not.toContain("SAME RECEPTIONS, TWO TIMES");
+      expect(html).not.toContain("EXIT DROPS FIRST");
+      expect(html).toContain("Will Train Frame");
+    },
+  );
+  it.each([0, 0.8, 0.9])(
+    "keeps resting objects fixed and moving objects at the correct velocity: beta=%s",
+    (beta) => {
+      const g = lorentzGamma(beta),
+        dt = 0.1;
+      const s0 = frameGeometry(0, beta, 0),
+        s1 = frameGeometry(dt, beta, 0);
+      const t0 = frameGeometry(0, beta, 1),
+        t1 = frameGeometry(dt * g, beta, 1);
+      expect(s1.tunnelX).toBeCloseTo(0, 12);
+      expect(s1.trainX - s0.trainX).toBeCloseTo(beta * C * dt, 10);
+      expect(t1.trainX).toBe(0);
+      expect(t1.trainScale * 300).toBe(300);
+      expect(t1.tunnelScale * 200).toBeCloseTo(200 / g, 10);
+      expect(t1.tunnelX - t0.tunnelX).toBeCloseTo(-beta * C * dt, 10);
+    },
+  );
+  it("wraps track ties without changing their repeated world pattern", () => {
+    const spacing = 0.6 / lorentzGamma(0.8);
+    for (const x of [-100, -0.5, 0, 0.5, 100]) {
+      expect(trackPhase(x, spacing)).toBeGreaterThanOrEqual(0);
+      expect(trackPhase(x, spacing)).toBeLessThan(spacing);
+      expect(trackPhase(x + spacing, spacing)).toBeCloseTo(
+        trackPhase(x, spacing),
+        10,
+      );
+    }
+  });
+});
+
+it("normal playback makes higher beta visibly faster in the train frame", () => {
+  const visibleSpeed = (beta: number) =>
+    (beta * C * playbackRate(-10, "train", beta)) / lorentzGamma(beta);
+  expect(visibleSpeed(0)).toBe(0);
+  expect(visibleSpeed(0.9)).toBeGreaterThan(visibleSpeed(0.8));
 });

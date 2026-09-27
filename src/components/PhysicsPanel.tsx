@@ -1,3 +1,4 @@
+import { StationDerivation } from "./StationDerivation";
 import {
   EventTimeDerivation,
   eventTimeDerivation,
@@ -44,6 +45,7 @@ export function PhysicsPanel({
     g = lorentzGamma(beta),
     q = frameTime(time, frame, beta);
   const derivation = stage.frame === "train";
+  const station = stage.diagram === "tunnel";
   const { first } = eventTimeDerivation(beta);
   const rows = [
     ["β", fmt(beta, 3)],
@@ -85,19 +87,28 @@ export function PhysicsPanel({
           </span>
         </div>
         <dl className="metrics">
-          {(derivation ? rows.slice(0, 6) : rows).map(([key, value]) => (
-            <div key={key}>
-              <dt>{key}</dt>
-              <dd
-                data-testid={
-                  key === "t" || key === "t′" ? "live-time" : undefined
-                }
-              >
-                {value}
-              </dd>
-            </div>
-          ))}
+          {(derivation || station ? rows.slice(0, 6) : rows).map(
+            ([key, value]) => (
+              <div key={key}>
+                <dt>{key}</dt>
+                <dd
+                  data-testid={
+                    key === "t" || key === "t′" ? "live-time" : undefined
+                  }
+                >
+                  {value}
+                </dd>
+              </div>
+            ),
+          )}
         </dl>
+        {station && (
+          <strong>
+            {trainFitsInTunnel(beta)
+              ? t("站台系：列车可容纳", "STATION S: TRAIN FITS")
+              : t("站台系：列车过长", "STATION S: TRAIN TOO LONG")}
+          </strong>
+        )}
         <div className="gate-meters">
           {(["A", "B"] as const).map((id) => {
             const progress = paradox
@@ -119,7 +130,7 @@ export function PhysicsPanel({
               "The lower animation uses false timing; no real collision event.",
             )}
           </small>
-        ) : !derivation ? (
+        ) : !derivation && !station ? (
           <>
             <div className="wave-metrics">
               {sensorEvents(beta).map((e) => (
@@ -165,11 +176,18 @@ export function PhysicsPanel({
                     "列车系中 A 的时间坐标更小，因此 A 先落下。",
                     "In the train frame A has the smaller time coordinate, so A drops first.",
                   )
-            : local(stage.takeaway)}
+            : station && !trainFitsInTunnel(beta)
+              ? t(
+                  "此速度下列车无法完全进入隧道。等距光路仍定义同时接收事件，但不能据此演示安全通过。",
+                  "At this speed the train does not fit. Equal light paths still define simultaneous receptions, but cannot demonstrate safe passage.",
+                )
+              : local(stage.takeaway)}
         </p>
       </section>
       {derivation ? (
         <EventTimeDerivation beta={beta} />
+      ) : station ? (
+        <StationDerivation beta={beta} />
       ) : (
         <section>
           <h3>{t("相对论公式", "RELATIVITY FORMULAS")}</h3>
@@ -222,7 +240,7 @@ export function PhysicsPanel({
             </tbody>
           </table>
         </section>
-      ) : (
+      ) : !station ? (
         <section>
           <h3>{t("同一接收事件，两种时间", "SAME RECEPTIONS, TWO TIMES")}</h3>
           <table>
@@ -247,7 +265,7 @@ export function PhysicsPanel({
             tex={String.raw`t'_B-t'_A=${fmt(calculateDoorTimeDifference(beta))}\,\mu\mathrm{s}`}
           />
         </section>
-      )}
+      ) : null}
       {axes && (
         <details className="diagram-details">
           <summary>{t("查看时空图", "Spacetime diagram")}</summary>
@@ -279,6 +297,14 @@ export function PhysicsPanel({
       <section>
         <h3>{t("观察提示", "WHAT TO OBSERVE")}</h3>
         <p>{local(stage.observe)}</p>
+        {station && (
+          <p className="takeaway">
+            {t(
+              "列车系 S′ 也会认为两门同时落下吗？",
+              "Will Train Frame S′ also call these events simultaneous?",
+            )}
+          </p>
+        )}
       </section>
     </aside>
   );
