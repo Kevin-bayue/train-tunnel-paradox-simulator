@@ -1,7 +1,7 @@
 import { useLanguage, sceneLabel } from "../i18n";
 import { introSnapshot } from "../physics/intro";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import {
   C,
@@ -281,26 +281,49 @@ function Sensor({ x, id, active }: { x: number; id: string; active: boolean }) {
     </group>
   );
 }
-function Track() {
+function Track({
+  offset = 0,
+  contraction = 1,
+}: {
+  offset?: number;
+  contraction?: number;
+}) {
+  // Rails/ballast cover the view permanently. Only the periodic ties move:
+  // never translate or contract a finite rail segment into the viewport.
+  const span = 800,
+    spacing = 0.6 * contraction;
+  const count = Math.ceil(span / spacing) + 2;
+  const ties = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const matrix = new THREE.Matrix4();
+    for (let i = 0; i < count; i++) {
+      matrix.makeTranslation((i - Math.floor(count / 2)) * spacing, -0.17, 0);
+      ties.current!.setMatrixAt(i, matrix);
+    }
+    ties.current!.instanceMatrix.needsUpdate = true;
+    ties.current!.computeBoundingSphere();
+  }, [spacing, count]);
   return (
-    <group>
-      <Box position={[0, -0.24, 0]} size={[60, 0.1, 1.8]} color="#263238" />
+    <group name="continuous-track">
+      <Box position={[0, -0.24, 0]} size={[span, 0.1, 1.8]} color="#263238" />
       {[-0.5, 0.5].map((z) => (
         <Box
           key={z}
           position={[0, -0.09, z]}
-          size={[60, 0.06, 0.065]}
+          size={[span, 0.06, 0.065]}
           color="#a0acad"
         />
       ))}
-      {Array.from({ length: 100 }, (_, i) => (
-        <Box
-          key={i}
-          position={[(i - 50) * 0.6, -0.17, 0]}
-          size={[0.13, 0.08, 1.7]}
-          color="#3e5458"
-        />
-      ))}
+      <group position={[trackPhase(offset, spacing), 0, 0]}>
+        <instancedMesh
+          key={count}
+          ref={ties}
+          args={[undefined, undefined, count]}
+        >
+          <boxGeometry args={[0.13 * contraction, 0.08, 1.7]} />
+          <meshStandardMaterial color="#3e5458" roughness={0.65} />
+        </instancedMesh>
+      </group>
     </group>
   );
 }
@@ -488,8 +511,7 @@ function ParadoxWorld({
 }
 function World(p: SceneProps) {
   const train = useRef<THREE.Group>(null),
-    tunnel = useRef<THREE.Group>(null),
-    track = useRef<THREE.Group>(null);
+    tunnel = useRef<THREE.Group>(null);
   const { camera, size, gl } = useThree();
   const target = useRef(new THREE.Vector3());
   const reduced = useRef(
@@ -541,23 +563,20 @@ function World(p: SceneProps) {
       ux = geometry.tunnelX * SCALE;
     train.current!.position.x = tx;
     tunnel.current!.position.x = ux;
-    // The repeating ties translate continuously; wrapping by one tie spacing
-    // is visually identical and prevents the finite track running out.
-    const spacing = 0.6 * geometry.tunnelScale;
-    track.current!.position.x = trackPhase(ux, spacing);
-    track.current!.scale.x = geometry.tunnelScale;
-    // Camera framing depends on frame/viewport, never on playback time.
-    // S′ is anchored to the resting train, rather than following a moving
-    // train/tunnel bounding box. Distant S1 may be outside this local view.
-    const stationFocus = p.signals ? -2.5 : 0;
+    // Station view follows the train while retaining the gates in the framing.
+    // Train view stays anchored; the camera never follows moving infrastructure.
+    const stationTrainX = p.beta * C * p.time * SCALE;
+    const stationFocus = stationTrainX * 0.5;
     const focus = stationFocus * (1 - b);
+    const stationSpan = Math.abs(stationTrainX) + 6;
     const fit = Math.max(
-      1.3,
+      1,
+      THREE.MathUtils.lerp(stationSpan / 12, 1, b),
       (size.width < 500 ? 1.3 : 1) / (size.width / size.height),
     );
     const poses = {
       Overview: [focus + 5 * fit, 6.3 * fit, 12 * fit],
-      Side: [focus, 4.8 * fit, 17 * fit],
+      Side: [focus + 4 * fit, 4.8 * fit, 15 * fit],
       Center: [focus + 2 * fit, 7 * fit, 12 * fit],
     };
     camera.position.lerp(new THREE.Vector3(...poses[p.camera]), ease);
@@ -595,9 +614,10 @@ function World(p: SceneProps) {
       <directionalLight position={[3, 10, 8]} intensity={2.2} />
       <directionalLight position={[-5, 4, -6]} intensity={1} color="#a9cdda" />
       <group visible={!p.paradox}>
-        <group ref={track}>
-          <Track />
-        </group>
+        <Track
+          offset={geometry.tunnelX * SCALE}
+          contraction={geometry.tunnelScale}
+        />
         <group ref={tunnel}>
           <group>
             <Tunnel

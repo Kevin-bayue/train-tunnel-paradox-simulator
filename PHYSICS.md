@@ -61,3 +61,7 @@ The 120 m tunnel at β=.8 is an instantaneous S′ length. It is **not** the inp
 Frame changes use a 650 ms smoothstep presentation transition; intermediate pictures are an explanatory interpolation, not additional inertial frames. The sidebar immediately reports the selected endpoint frame. Stage 2↔3 preserves time, beta and playback state. Camera presets are independent; camera framing no longer follows moving object bounds, so the resting train stays visually anchored. At large beta the distant S1 sensor or approaching tunnel may lie outside the fixed local camera view. Gates retain the existing downward-through-track model (no reopening).
 
 Outside gate slow motion, train-frame anchor playback runs at γ times the station-frame rate, keeping coordinate-time playback uniform (dt′/dwall = dt/dwall). Thus increasing β increases visible environmental speed instead of accidentally slowing it by a factor 1/γ. Gate intervals still use a shared slowed clock.
+
+### Camera and track visibility update
+
+Station-frame framing again follows the train/tunnel midpoint and widens with their separation. Side view uses a modest oblique angle so gate panels are visible. Train-frame framing remains fixed. Continuous rails and ballast span 800 scene units without longitudinal scaling or translation; instanced ties alone repeat at the contracted spacing with the station-world phase. This keeps track ends outside the viewing frustum and avoids translating a finite rail segment across the picture.
