@@ -1,0 +1,702 @@
+:root {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: #e5ebea;
+  background: #0e1112;
+  font-synthesis: none;
+  color-scheme: dark;
+  font-size: 13px;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+select {
+  background: #252c2f;
+  color: #dce4e4;
+  border: 1px solid #3a4549;
+  border-radius: 7px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+button:hover {
+  background: #364247;
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid #aed9ce;
+  outline-offset: 3px;
+}
+button[aria-pressed="true"] {
+  background: #d6e3de;
+  color: #182324;
+  border-color: #d6e3de;
+}
+.app {
+  padding: 18px;
+  max-width: 1800px;
+  margin: auto;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #273034;
+  background: #141819;
+  border-radius: 12px;
+  padding: 13px 20px;
+  margin-bottom: 14px;
+}
+.eyebrow,
+h3 {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #a6b5b8;
+  font-weight: 600;
+}
+h1 {
+  font-size: 18px;
+  line-height: 1.4;
+  margin: 3px 0 0;
+  font-weight: 600;
+}
+h2 {
+  font-size: 19px;
+  margin: 6px 0 0;
+  font-weight: 550;
+}
+h3 {
+  margin: 0 0 12px;
+}
+p {
+  line-height: 1.6;
+}
+main {
+  display: grid;
+  grid-template-columns: 172px minmax(0, 1fr) 285px;
+  gap: 14px;
+  align-items: start;
+}
+.panel {
+  border: 1px solid #293236;
+  border-radius: 12px;
+  background: #151a1c;
+  overflow: hidden;
+}
+.process {
+  padding: 20px 10px;
+  min-height: 710px;
+}
+.process h3,
+.rail-title {
+  padding: 0 9px;
+}
+.rail-title {
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  line-height: 1.8;
+  color: #71858b;
+  margin: 0 0 21px;
+}
+.process button {
+  display: flex;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  gap: 11px;
+  margin: 5px 0;
+  padding: 14px 8px;
+  background: transparent;
+  border-color: transparent;
+}
+.process button[aria-current="step"] {
+  background: #2a3739;
+  border-color: #536b69;
+}
+.number {
+  font-size: 11px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: #303a3e;
+}
+.process b {
+  font-size: 12px;
+  font-weight: 550;
+  display: block;
+  line-height: 1.5;
+}
+.process small {
+  font-size: 10px;
+  color: #94a3a8;
+  display: block;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+.rail-note {
+  border-top: 1px solid #2b3336;
+  padding: 23px 10px;
+  margin-top: 32px;
+  color: #9ac6bb;
+  font-size: 19px;
+}
+.rail-note span {
+  font-size: 11px;
+  color: #7e9097;
+  line-height: 1.7;
+}
+.center {
+  min-width: 0;
+}
+.scene-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 19px 21px;
+  gap: 20px;
+}
+.scene-heading p {
+  font-size: 12px;
+  color: #97a9ad;
+  max-width: 240px;
+  margin: 0;
+}
+.scene {
+  height: clamp(480px, 64vh, 650px);
+  position: relative;
+  background: #141a1d;
+}
+.scene canvas {
+  display: block;
+}
+.frame-banner {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  border-left: 2px solid #9ac6bb;
+  padding-left: 11px;
+}
+.frame-banner span {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #7f949b;
+}
+.frame-banner strong {
+  font-size: 13px;
+  font-weight: 500;
+}
+.frame-banner small {
+  font-size: 10px;
+  color: #9fb0b4;
+}
+.scene-legend {
+  position: absolute;
+  right: 18px;
+  top: 12px;
+  display: flex;
+  gap: 12px;
+  font-size: 10px;
+  flex-wrap: wrap;
+  max-width: 230px;
+  justify-content: flex-end;
+}
+.a {
+  color: #8fc5da;
+}
+.b,
+.gold {
+  color: #dbbb86;
+}
+.mint {
+  color: #8cc9bb;
+}
+.clock-overlay {
+  position: absolute;
+  left: 20px;
+  bottom: 50px;
+  font-variant-numeric: tabular-nums;
+  font-size: 12px;
+  color: #d8c6a1;
+}
+.clock-overlay small {
+  font-size: 10px;
+  color: #99abaa;
+}
+.scene-note {
+  position: absolute;
+  left: 20px;
+  bottom: 15px;
+  font-size: 10px;
+  color: #7d9299;
+}
+.now-overlay {
+  position: absolute;
+  bottom: 92px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 11px;
+  background: #141a1dde;
+  padding: 10px;
+  border-left: 1px solid #5e7878;
+}
+.now-overlay small {
+  color: #8b9b9e;
+}
+.controls {
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  border-top: 1px solid #293236;
+}
+.velocity {
+  flex: 1;
+  min-width: 150px;
+}
+.velocity label,
+.velocity > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 11px;
+  color: #98aeb4;
+}
+.velocity strong {
+  color: #dce8e6;
+  font-weight: 500;
+}
+input[type="range"] {
+  accent-color: #abcfc4;
+  width: 100%;
+  height: 18px;
+}
+.control-group > label {
+  display: block;
+  font-size: 10px;
+  color: #8fa2a7;
+  margin-bottom: 7px;
+}
+.segmented {
+  display: flex;
+  gap: 3px;
+}
+.segmented button {
+  font-size: 11px;
+  white-space: nowrap;
+}
+.playback {
+  padding: 0 20px 14px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.playback button {
+  font-size: 11px;
+}
+.playback input {
+  min-width: 50px;
+}
+.playback output {
+  font-size: 10px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  color: #92a9b0;
+}
+.primary {
+  background: #d4e2dc;
+  color: #152120;
+  border-color: #d4e2dc;
+}
+.primary:hover {
+  background: #eef5f1;
+}
+.context-strip {
+  padding: 11px 20px;
+  background: #1b2426;
+  color: #adbfbe;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.physics {
+  padding: 19px 18px;
+}
+.physics section + section {
+  border-top: 1px solid #2a3438;
+  padding-top: 16px;
+  margin-top: 17px;
+}
+.physics p {
+  font-size: 12px;
+  color: #aebdc1;
+  margin: 0;
+}
+.physics .takeaway {
+  font-size: 15px;
+  color: #e0e8e5;
+  line-height: 1.55;
+}
+.formula {
+  font-family: Georgia, serif;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #c2d9d0;
+  overflow-wrap: anywhere;
+}
+.readout > div {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  padding: 7px 0;
+  font-size: 12px;
+}
+.readout > div > :first-child {
+  text-align: left;
+}
+.readout .data-head {
+  font-size: 9px;
+  color: #81989f;
+}
+.readout p {
+  font-size: 11px;
+  margin-top: 8px;
+}
+.spacetime {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+}
+.spacetime.prominent {
+  max-height: 275px;
+}
+svg text {
+  font-family: inherit;
+  font-size: 12px;
+  fill: #c3d1d3;
+}
+.svg-note {
+  font-size: 11px;
+  fill: #90a7ad;
+}
+.diagram-section small {
+  font-size: 10px;
+  line-height: 1.6;
+  color: #80949b;
+}
+.terms {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+.terms span {
+  font-size: 9px;
+  color: #acbdbd;
+  border: 1px solid #344449;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 25px;
+  padding: 12px;
+  margin-top: 12px;
+}
+.progress {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  position: relative;
+  padding-bottom: 15px;
+}
+.progress button {
+  width: 7px;
+  height: 7px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: #536266;
+}
+.progress button[aria-current] {
+  width: 24px;
+  background: #c5dcd3;
+}
+.progress small {
+  position: absolute;
+  top: 15px;
+  font-size: 9px;
+  left: 15px;
+  white-space: nowrap;
+  color: #84999d;
+}
+.event-records {
+  margin-top: 12px;
+  padding: 13px 18px;
+  color: #94a9af;
+  font-size: 11px;
+}
+.event-records summary {
+  cursor: pointer;
+}
+.event-records p {
+  max-width: 780px;
+}
+.table-scroll {
+  overflow: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+td,
+th {
+  padding: 7px;
+  border-bottom: 1px solid #304045;
+  white-space: nowrap;
+}
+.explore-controls {
+  margin-top: 12px;
+  padding: 15px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.explore-controls h3 {
+  margin: 3px 0;
+}
+.explore-controls label {
+  font-size: 11px;
+  color: #acbcbf;
+}
+input[type="checkbox"] {
+  accent-color: #accdc3;
+}
+i {
+  font-style: normal;
+}
+@media (min-width: 1500px) {
+  main {
+    grid-template-columns: 190px minmax(0, 1fr) 305px;
+  }
+}
+@media (max-width: 1150px) {
+  main {
+    grid-template-columns: 145px minmax(0, 1fr) 245px;
+  }
+  .app {
+    padding: 10px;
+  }
+  main {
+    gap: 10px;
+  }
+  .controls {
+    gap: 10px;
+    padding: 12px;
+  }
+  .scene-heading {
+    padding: 15px;
+  }
+  .scene-heading p {
+    max-width: 160px;
+  }
+  .scene-legend {
+    top: 85px;
+    left: 20px;
+    right: auto;
+  }
+  .physics {
+    padding: 15px 12px;
+  }
+  .formula {
+    font-size: 16px;
+  }
+  .process {
+    padding: 16px 6px;
+  }
+  .process button {
+    gap: 6px;
+    padding: 12px 5px;
+  }
+}
+@media (max-width: 900px) {
+  main {
+    grid-template-columns: 135px minmax(0, 1fr);
+  }
+  .physics {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .physics section + section {
+    margin: 0;
+  }
+  .scene {
+    height: 560px;
+  }
+  .process {
+    min-height: 650px;
+  }
+  .controls {
+    flex-wrap: wrap;
+  }
+  .velocity {
+    flex-basis: 100%;
+  }
+}
+@media (max-width: 600px) {
+  header {
+    padding: 12px;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  h1 {
+    font-size: 15px;
+  }
+  header .segmented {
+    flex-direction: column;
+  }
+  .eyebrow {
+    font-size: 8px;
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+  .process {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    width: 100%;
+    min-height: 0;
+    padding: 7px;
+  }
+  .process h3,
+  .rail-title,
+  .rail-note {
+    display: none;
+  }
+  .process button {
+    margin: 0;
+    padding: 9px 4px;
+  }
+  .process small {
+    display: none;
+  }
+  .process b {
+    font-size: 10px;
+  }
+  .number {
+    font-size: 9px;
+  }
+  .center {
+    width: 100%;
+  }
+  .scene {
+    height: 440px;
+  }
+  .scene-heading p {
+    font-size: 10px;
+    max-width: 150px;
+  }
+  .scene-heading h2 {
+    font-size: 17px;
+  }
+  .scene-legend {
+    font-size: 9px;
+  }
+  .physics {
+    width: 100%;
+    display: block;
+  }
+  .physics section + section {
+    margin-top: 18px;
+  }
+  .spacetime {
+    max-height: 270px;
+  }
+  .playback {
+    padding: 0 12px 12px;
+    flex-wrap: wrap;
+  }
+  .playback input {
+    flex: 1;
+  }
+  .navigation {
+    gap: 15px;
+  }
+  .navigation button {
+    font-size: 11px;
+  }
+  .controls {
+    gap: 15px;
+  }
+  .context-strip {
+    font-size: 10px;
+  }
+  .scene-note {
+    font-size: 8px;
+  }
+  .clock-overlay {
+    font-size: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+  }
+}
+
+.event-coordinate-overlay {
+  position: absolute;
+  right: 18px;
+  bottom: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 10px;
+  background: #141a1ddd;
+  padding: 8px;
+  border-radius: 5px;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 600px) {
+  .event-coordinate-overlay {
+    bottom: 92px;
+    font-size: 9px;
+    left: 20px;
+    right: auto;
+  }
+  .now-overlay {
+    bottom: 155px;
+  }
+}

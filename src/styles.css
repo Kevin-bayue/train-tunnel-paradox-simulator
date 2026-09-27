@@ -1,0 +1,894 @@
+:root {
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    "PingFang SC",
+    sans-serif;
+  color: #ededed;
+  background: #080808;
+  color-scheme: dark;
+  font-size: 13px;
+  font-synthesis: none;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+button,
+select {
+  color: #dedede;
+  background: #222;
+  border: 1px solid #343434;
+  border-radius: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+button:hover {
+  background: #343434;
+}
+button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+summary:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+button[aria-pressed="true"],
+button.primary {
+  background: #e6e6e6;
+  color: #151515;
+  border-color: #e6e6e6;
+}
+input {
+  accent-color: #ddd;
+}
+input[type="range"] {
+  min-width: 0;
+  width: 100%;
+  cursor: pointer;
+}
+input[type="number"] {
+  width: 80px;
+  border: 1px solid #444;
+  border-radius: 5px;
+  background: #191919;
+  color: #eee;
+  padding: 5px;
+}
+p {
+  line-height: 1.7;
+}
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+h1 {
+  font-size: 19px;
+  margin: 5px 0 0;
+  font-weight: 600;
+}
+h2 {
+  font-size: 20px;
+  margin: 5px 0 0;
+  font-weight: 550;
+}
+h3,
+.eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  color: #aaa;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+h3 {
+  margin-bottom: 12px;
+}
+.app {
+  max-width: 1800px;
+  padding: 14px 18px;
+  margin: auto;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 18px;
+  margin-bottom: 14px;
+  background: #101010;
+  border: 1px solid #222;
+  border-radius: 16px;
+}
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.segmented {
+  display: flex;
+  gap: 3px;
+  border-radius: 10px;
+  background: #171717;
+  padding: 3px;
+}
+.segmented button {
+  border-color: transparent;
+  padding: 7px 11px;
+}
+.language button {
+  font-size: 11px;
+}
+main {
+  display: grid;
+  grid-template-columns: 165px minmax(0, 1fr) 320px;
+  gap: 14px;
+  align-items: start;
+}
+.panel {
+  background: #101010;
+  border: 1px solid #232323;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.process {
+  padding: 13px 10px;
+  min-height: 650px;
+  position: sticky;
+  top: 14px;
+}
+.rail-brand {
+  display: inline-block;
+  padding: 12px 10px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  font-weight: 600;
+}
+.process button {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border-color: transparent;
+  padding: 16px 9px;
+  margin: 8px 0;
+}
+.process button[aria-current="step"] {
+  background: #292929;
+  border-color: #333;
+}
+.number {
+  background: #333;
+  border-radius: 6px;
+  padding: 4px 7px;
+  font-size: 11px;
+  height: 24px;
+}
+.process b {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.process small {
+  display: block;
+  font-size: 10px;
+  color: #aaa;
+  line-height: 1.55;
+  margin-top: 5px;
+}
+.rail-note {
+  margin: 30px 8px 0;
+  padding-top: 18px;
+  border-top: 1px solid #292929;
+  color: #888;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.center {
+  min-width: 0;
+}
+.scene-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  padding: 18px 20px 12px;
+}
+.scene-heading p {
+  max-width: 42%;
+  font-size: 11px;
+  color: #aaa;
+  margin: 0;
+}
+.scene {
+  position: relative;
+  height: 490px;
+  background: #101010;
+}
+.scene canvas {
+  display: block;
+}
+.paradox-scene {
+  height: 500px;
+}
+.paradox-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.paradox-label {
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  background: #171717ed;
+  border-left: 2px solid #aaa;
+  padding: 8px 12px;
+  display: grid;
+  gap: 4px;
+  border-radius: 6px;
+}
+.paradox-label.station {
+  top: 3px;
+}
+.paradox-label.train {
+  top: 51%;
+  border-left-style: dashed;
+  background: #202020ef;
+}
+.paradox-label b {
+  font-size: 9px;
+  color: #bcbcbc;
+  letter-spacing: 0.08em;
+}
+.paradox-label strong {
+  font-size: 12px;
+  font-weight: 500;
+}
+.paradox-label span {
+  font-size: 10px;
+  color: #bbb;
+}
+.frame-banner {
+  position: absolute;
+  top: 12px;
+  left: 20px;
+  display: grid;
+  gap: 5px;
+  border-left: 2px solid #888;
+  padding-left: 12px;
+}
+.frame-banner > span {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #888;
+}
+.frame-banner strong {
+  font-size: 13px;
+}
+.frame-banner small {
+  font-size: 10px;
+  color: #aaa;
+}
+.door-status {
+  position: absolute;
+  top: 96px;
+  left: 20px;
+  right: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  font-size: 10px;
+  color: #ccc;
+}
+.clock-overlay {
+  position: absolute;
+  bottom: 35px;
+  left: 20px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.scene-note {
+  position: absolute;
+  bottom: 12px;
+  left: 20px;
+  right: 20px;
+  font-size: 9px;
+  color: #888;
+  line-height: 1.5;
+  pointer-events: none;
+}
+.playback {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #222;
+}
+.playback button {
+  white-space: nowrap;
+  font-size: 12px;
+}
+.playback output {
+  min-width: 108px;
+  text-align: right;
+  color: #aaa;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+.signal-story {
+  background: #191919;
+  padding: 12px 18px;
+}
+.signal-story p {
+  margin: 0;
+  color: #d0d0d0;
+  font-size: 12px;
+}
+.circuit-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 12px 18px 0;
+}
+.circuit-steps button {
+  flex: 1;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.circuit-steps .reached {
+  background: #353535;
+  border-color: #777;
+  color: #fff;
+}
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 15px 18px;
+}
+.velocity {
+  flex: 1;
+  min-width: 120px;
+}
+.velocity label {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 11px;
+  color: #bbb;
+}
+.velocity strong {
+  color: #eee;
+  font-variant-numeric: tabular-nums;
+}
+.control-group label {
+  display: block;
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 5px;
+}
+.control-group button,
+.control-group select {
+  font-size: 11px;
+}
+.event-jumps {
+  display: flex;
+  gap: 8px;
+  padding: 0 18px 14px;
+  align-items: center;
+}
+.event-jumps button {
+  font-size: 11px;
+}
+.event-jumps small {
+  font-size: 10px;
+  color: #aaa;
+  margin-left: auto;
+}
+.explore-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid #292929;
+  padding: 14px 18px;
+}
+.explore-controls label {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 10px;
+  margin-top: 12px;
+}
+.progress {
+  display: flex;
+  gap: 7px;
+}
+.progress button {
+  padding: 0;
+  border: 0;
+  background: #444;
+  width: 7px;
+  height: 7px;
+  border-radius: 9px;
+}
+.progress button[aria-current="step"] {
+  width: 24px;
+  background: #eee;
+}
+.event-records {
+  margin-top: 12px;
+  padding: 14px 18px;
+  font-size: 11px;
+  color: #aaa;
+}
+.event-records summary,
+.diagram-details summary {
+  cursor: pointer;
+  color: #bbb;
+}
+.event-records p {
+  margin: 12px 0;
+}
+.table-scroll {
+  overflow-x: auto;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+th,
+td {
+  text-align: right;
+  padding: 8px 5px;
+  border-bottom: 1px solid #333;
+  white-space: nowrap;
+}
+th {
+  font-size: 9px;
+  color: #999;
+  font-weight: 500;
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+.physics {
+  padding: 12px;
+  position: sticky;
+  top: 14px;
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #444 transparent;
+}
+.physics section {
+  background: #191919;
+  padding: 15px 13px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+}
+.physics section:last-child {
+  margin-bottom: 0;
+}
+.physics p {
+  font-size: 12px;
+  margin-bottom: 0;
+}
+.physics small {
+  display: block;
+  color: #888;
+  line-height: 1.6;
+  font-size: 9px;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: start;
+}
+.live-dot {
+  font-size: 9px;
+  color: #b7b7b7;
+  white-space: nowrap;
+}
+.metrics {
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 14px;
+}
+.metrics div {
+  min-width: 0;
+}
+.metrics dt {
+  font-size: 10px;
+  color: #999;
+  margin-bottom: 4px;
+}
+.metrics dd {
+  font-size: 13px;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.gate-meters {
+  border-top: 1px solid #333;
+  margin-top: 14px;
+  padding-top: 10px;
+}
+.gate-meters > div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+.gate-meters progress {
+  width: 70px;
+  flex: 1;
+  height: 4px;
+  accent-color: #ddd;
+}
+.gate-meters strong {
+  font-weight: 500;
+  width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.wave-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  font-size: 10px;
+  margin: 9px 0;
+  font-variant-numeric: tabular-nums;
+}
+.math-formula {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 0;
+  font-size: 12px;
+}
+.math-formula .katex-display {
+  margin: 9px 0;
+}
+.math-formula .katex {
+  font-size: 1.1em;
+}
+.formula-result {
+  border-top: 1px solid #333;
+  margin-top: 8px;
+  color: #ddd;
+}
+.formula-result .katex {
+  font-size: 1em;
+}
+.diagram-details {
+  padding: 12px;
+  font-size: 11px;
+}
+.spacetime {
+  width: 100%;
+  max-height: 290px;
+  margin-top: 12px;
+}
+.spacetime text {
+  fill: #bbb;
+  font: 11px system-ui;
+}
+.spacetime .svg-note {
+  font-size: 9px;
+}
+@media (min-width: 1500px) {
+  main {
+    grid-template-columns: 180px minmax(0, 1fr) 360px;
+  }
+  .scene {
+    height: 550px;
+  }
+  .paradox-scene {
+    height: 570px;
+  }
+}
+@media (max-width: 1100px) {
+  main {
+    grid-template-columns: 135px minmax(0, 1fr) 285px;
+    gap: 10px;
+  }
+  .app {
+    padding: 12px;
+  }
+  .scene-heading {
+    padding: 15px;
+  }
+  .controls {
+    flex-wrap: wrap;
+  }
+  .velocity {
+    flex-basis: 100%;
+  }
+  .scene-heading p {
+    max-width: 40%;
+    font-size: 10px;
+  }
+  .physics {
+    padding: 8px;
+  }
+  .physics section {
+    padding: 13px 10px;
+  }
+  .playback {
+    flex-wrap: wrap;
+  }
+  .playback input {
+    flex: 1;
+    min-width: 100px;
+  }
+  .playback output {
+    min-width: 95px;
+  }
+  .process button {
+    padding: 12px 5px;
+    gap: 6px;
+  }
+}
+@media (max-width: 850px) {
+  main {
+    grid-template-columns: 125px minmax(0, 1fr);
+  }
+  .physics {
+    grid-column: 2;
+    position: static;
+    max-height: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .physics section {
+    margin: 0;
+  }
+  .process {
+    min-height: 600px;
+  }
+  .scene {
+    height: 500px;
+  }
+}
+@media (max-width: 600px) {
+  .app {
+    padding: 10px;
+  }
+  header {
+    padding: 12px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 17px;
+  }
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .header-actions button {
+    font-size: 11px;
+  }
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+  .process {
+    position: static;
+    width: 100%;
+    min-height: 0;
+    padding: 5px;
+    display: flex;
+  }
+  .rail-brand,
+  .rail-note,
+  .process small {
+    display: none;
+  }
+  .process button {
+    margin: 0;
+    flex: 1;
+    padding: 10px 6px;
+    align-items: center;
+  }
+  .process b {
+    font-size: 10px;
+  }
+  .number {
+    font-size: 9px;
+    padding: 3px 5px;
+    height: 20px;
+  }
+  .center,
+  .physics {
+    width: 100%;
+  }
+  .scene-heading {
+    gap: 10px;
+    padding: 16px 12px 10px;
+  }
+  .scene-heading h2 {
+    font-size: 16px;
+  }
+  .scene-heading p {
+    max-width: 45%;
+    font-size: 10px;
+  }
+  .scene {
+    height: 570px;
+  }
+  .paradox-scene {
+    height: 620px;
+  }
+  .paradox-label {
+    left: 10px;
+    right: 10px;
+    padding: 8px;
+  }
+  .paradox-label strong {
+    font-size: 11px;
+  }
+  .paradox-label span {
+    font-size: 9px;
+    line-height: 1.5;
+  }
+  .door-status {
+    top: 100px;
+    left: 14px;
+    gap: 8px;
+  }
+  .frame-banner {
+    left: 14px;
+  }
+  .scene-note {
+    left: 14px;
+    right: 14px;
+    font-size: 8px;
+  }
+  .playback {
+    padding: 12px;
+    gap: 7px;
+  }
+  .playback input {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .playback output {
+    margin-left: auto;
+  }
+  .signal-story {
+    padding: 12px;
+  }
+  .signal-story p {
+    font-size: 11px;
+  }
+  .controls {
+    padding: 12px;
+    gap: 12px;
+  }
+  .circuit-steps {
+    padding: 12px 12px 0;
+  }
+  .circuit-steps button {
+    padding: 8px 5px;
+    font-size: 10px;
+  }
+  .event-jumps {
+    padding: 0 12px 12px;
+    flex-wrap: wrap;
+  }
+  .physics {
+    display: block;
+    padding: 10px;
+  }
+  .physics section {
+    margin-bottom: 10px;
+  }
+  .metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+  .math-formula {
+    font-size: 14px;
+  }
+  .navigation {
+    gap: 20px;
+  }
+  .event-records {
+    padding: 12px;
+  }
+  .physics {
+    max-height: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+
+.event-derivation .derivation-step {
+  padding: 12px 0;
+  border-top: 1px solid #343434;
+}
+.event-derivation h4 {
+  margin: 0 0 8px;
+  font-size: 12px;
+}
+.event-derivation .event-A {
+  color: #58c9f2;
+}
+.event-derivation .event-B {
+  color: #ffc66d;
+}
+.event-derivation .math-formula {
+  font-size: 14px;
+  margin: 8px 0;
+}
+.event-derivation .order-result {
+  text-align: center;
+}
+.event-derivation .order-result > .math-formula {
+  font-size: 22px;
+}
+.order-timeline {
+  position: relative;
+  height: 65px;
+  margin: 14px 26px 0;
+}
+.order-timeline::before {
+  content: "";
+  position: absolute;
+  top: 31px;
+  left: 0;
+  right: 0;
+  border-top: 1px solid #888;
+}
+.timeline-zero {
+  position: absolute;
+  left: 50%;
+  top: 23px;
+  background: #191919;
+  padding: 0 4px;
+  transform: translateX(-50%);
+  font-size: 10px;
+}
+.timeline-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 11px;
+  white-space: nowrap;
+}
+.timeline-marker b {
+  font-weight: 400;
+}
