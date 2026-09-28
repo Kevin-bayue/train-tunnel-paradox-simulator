@@ -222,6 +222,8 @@ main {
   background: #101010;
 }
 .scene canvas {
+  cursor: grab;
+  touch-action: none;
   display: block;
 }
 .paradox-scene {

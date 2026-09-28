@@ -69,3 +69,19 @@ Station-frame framing again follows the train/tunnel midpoint and widens with th
 The oblique Side-camera adjustment applies only to Station S. Train S′ retains the original fixed side pose (x=0, y=4.8×fit, z=17×fit, minimum fit=1.3), independently of playback. Continuous-track coverage remains enabled in both frames.
 
 Station Side view now also has zero longitudinal camera offset (restored side-on framing), with camera depth 18.5×fit to reduce the scene size slightly. Train Side remains at 17×fit. Station tracking and all physics are unchanged.
+
+### Interactive camera (2026-09-28)
+
+All three stages share OrbitControls: drag to orbit, wheel/pinch to zoom. As in
+MHD Learn mode, release followed by 5 seconds of inactivity starts a smooth
+return (frame-rate-independent exponential easing, rate 2.14/s). Holding a drag
+suspends return. New input interrupts return. Stage/frame/preset changes also
+return to that scene's live default. Reduced-motion preferences skip return easing.
+Zoom is bounded to 0.45–2.5 times the default distance; pan is disabled and orbit
+stays above the track. Default side poses, physics clocks, and persistent Canvas
+are unchanged. Stage 3 remains train-centered; Stage 2 retains its moving focus.
+
+Validation: build succeeded; 62 current and 31 archived physics checks passed.
+Browser drag in Stage 1 and wheel zoom in paused Stage 3 changed camera position
+without changing world ID or gate/geometry state. Stage 1 returned to its exact
+default after idle. Stage 3 retained trainX = 0 and default [0, 6.24, 22.1].

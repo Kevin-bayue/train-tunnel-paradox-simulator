@@ -3,6 +3,7 @@ import { introSnapshot } from "../physics/intro";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import {
   C,
   frameGeometry,
@@ -34,6 +35,92 @@ export type SceneProps = {
   introTime?: number;
 };
 const SCALE = 0.025;
+// One camera owner for both the paradox comparison and the explanation scenes.
+// Default poses remain live while the user explores, so return follows current time.
+function useSceneCamera(resetKey: string) {
+  const { camera, gl } = useThree();
+  const controls = useRef<OrbitControls | null>(null);
+  const interaction = useRef({ active: false, last: 0, mode: "auto" });
+  useEffect(() => {
+    const orbit = new OrbitControls(camera, gl.domElement);
+    orbit.enablePan = false;
+    orbit.enableDamping = true;
+    orbit.dampingFactor = 0.06;
+    orbit.minPolarAngle = 0.15;
+    orbit.maxPolarAngle = Math.PI / 2 - 0.025;
+    const start = () => {
+      interaction.current = {
+        active: true,
+        last: performance.now(),
+        mode: "manual",
+      };
+      gl.domElement.style.cursor = "grabbing";
+    };
+    const end = () => {
+      interaction.current.active = false;
+      interaction.current.last = performance.now();
+      gl.domElement.style.cursor = "grab";
+    };
+    orbit.addEventListener("start", start);
+    orbit.addEventListener("end", end);
+    controls.current = orbit;
+    return () => {
+      orbit.removeEventListener("start", start);
+      orbit.removeEventListener("end", end);
+      orbit.dispose();
+      controls.current = null;
+    };
+  }, [camera, gl]);
+  useEffect(() => {
+    interaction.current = { active: false, last: 0, mode: "returning" };
+  }, [resetKey]);
+  return (
+    position: THREE.Vector3,
+    target: THREE.Vector3,
+    dt: number,
+    ease: number,
+  ) => {
+    const orbit = controls.current;
+    if (!orbit) return;
+    const state = interaction.current;
+    const distance = position.distanceTo(target);
+    orbit.minDistance = distance * 0.45;
+    orbit.maxDistance = distance * 2.5;
+    if (
+      state.mode === "manual" &&
+      !state.active &&
+      performance.now() - state.last > 5000
+    )
+      state.mode = "returning";
+    if (state.mode === "manual") {
+      orbit.enableDamping = true;
+      orbit.update(dt);
+    } else {
+      // Flush residual orbit inertia before positioning, preventing two camera writers.
+      orbit.enableDamping = false;
+      orbit.update(dt);
+      const alpha =
+        state.mode === "returning"
+          ? matchMedia("(prefers-reduced-motion: reduce)").matches
+            ? 1
+            : 1 - Math.exp(-dt * 2.14)
+          : ease;
+      camera.position.lerp(position, alpha);
+      orbit.target.lerp(target, alpha);
+      camera.lookAt(orbit.target);
+      if (
+        camera.position.distanceTo(position) < 0.01 &&
+        orbit.target.distanceTo(target) < 0.01
+      )
+        state.mode = "auto";
+    }
+    gl.domElement.dataset.cameraMode = state.mode;
+    gl.domElement.dataset.cameraPosition = camera.position.toArray().join(",");
+    gl.domElement.dataset.cameraDefault = position.toArray().join(",");
+    gl.domElement.dataset.cameraTarget = orbit.target.toArray().join(",");
+  };
+}
+type CameraDriver = ReturnType<typeof useSceneCamera>;
 function Box({
   position,
   size,
@@ -426,10 +513,12 @@ function ParadoxWorld({
   beta,
   active,
   time,
+  driveCamera,
 }: {
   beta: number;
   active: boolean;
   time: number;
+  driveCamera: CameraDriver;
 }) {
   const { camera, size, gl } = useThree();
   const snap = introSnapshot(time, beta);
@@ -445,11 +534,12 @@ function ParadoxWorld({
       (hi - lo + 1) / ((16.5 * size.width) / size.height),
     );
     const focus = (lo + hi) / 2;
-    camera.position.lerp(
+    driveCamera(
       new THREE.Vector3(focus + 1.8 * fit, 5.8, 21 * fit),
+      new THREE.Vector3(focus, 4.8, 0),
+      dt,
       1 - Math.exp(-dt * 8),
     );
-    camera.lookAt(focus, 4.8, 0);
     gl.domElement.dataset.introProgress = String(snap.progress);
     gl.domElement.dataset.introImpact = String(snap.impact);
   });
@@ -513,7 +603,7 @@ function World(p: SceneProps) {
   const train = useRef<THREE.Group>(null),
     tunnel = useRef<THREE.Group>(null);
   const { camera, size, gl } = useThree();
-  const target = useRef(new THREE.Vector3());
+  const driveCamera = useSceneCamera(`${p.paradox}:${p.frame}:${p.camera}`);
   const reduced = useRef(
     matchMedia("(prefers-reduced-motion: reduce)").matches,
   );
@@ -581,9 +671,12 @@ function World(p: SceneProps) {
       Side: [focus, 4.8 * fit, (18.5 - 1.5 * b) * fit],
       Center: [focus + 2 * fit, 7 * fit, 12 * fit],
     };
-    camera.position.lerp(new THREE.Vector3(...poses[p.camera]), ease);
-    target.current.lerp(new THREE.Vector3(focus, 1.3, 0), ease);
-    camera.lookAt(target.current);
+    driveCamera(
+      new THREE.Vector3(...poses[p.camera]),
+      new THREE.Vector3(focus, 1.3, 0),
+      dt,
+      ease,
+    );
     gl.domElement.dataset.trainX = String(geometry.trainX);
     gl.domElement.dataset.tunnelX = String(geometry.tunnelX);
     gl.domElement.dataset.trackOffset = String(geometry.tunnelX);
@@ -748,6 +841,7 @@ function World(p: SceneProps) {
           })}
       </group>
       <ParadoxWorld
+        driveCamera={driveCamera}
         beta={p.beta}
         active={!!p.paradox}
         time={p.introTime ?? 0}

@@ -333,6 +333,12 @@ function Lab({ setLanguage }: { setLanguage: (language: Language) => void }) {
                 </>
               )}
               <div className="scene-note">
+                <div>
+                  {t(
+                    "拖拽旋转 · 滚轮 / 双指缩放 · 停止操作 5 秒后恢复视角",
+                    "Drag to orbit · Scroll / pinch to zoom · View returns after 5 seconds idle",
+                  )}
+                </div>
                 {paradox
                   ? t(
                       "上下为对照示意；下方是待纠正的推断。",
