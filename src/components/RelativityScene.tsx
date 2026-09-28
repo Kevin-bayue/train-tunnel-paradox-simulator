@@ -536,11 +536,11 @@ function ParadoxWorld({
     const hi = trainFrame
       ? Math.max(3.75, tunnelX + 2.5 / g)
       : Math.max(2.5, trainX + 3.75 / g);
-    const fit = Math.max(1, (hi - lo + 1) / ((8 * size.width) / size.height));
+    const fit = Math.max(1, (hi - lo + 1) / ((6.4 * size.width) / size.height));
     const focus = (lo + hi) / 2;
     driveCamera(
-      new THREE.Vector3(focus, 1.6 + (4.5 * fit - 1.6) * 0.8, 12 * fit),
-      new THREE.Vector3(focus, 1.6, 0),
+      new THREE.Vector3(focus, 1.1 + 1.856 * fit, 9.6 * fit),
+      new THREE.Vector3(focus, 1.1, 0),
       dt,
       1 - Math.exp(-dt * 8),
     );
