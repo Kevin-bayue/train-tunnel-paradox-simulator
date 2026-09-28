@@ -184,6 +184,9 @@ export function PhysicsPanel({
               : local(stage.takeaway)}
         </p>
       </section>
+      {axes && !paradox && (
+        <SpacetimeDiagram beta={beta} time={time} frame={frame} />
+      )}
       {derivation ? (
         <EventTimeDerivation beta={beta} />
       ) : station ? (
@@ -266,18 +269,6 @@ export function PhysicsPanel({
           />
         </section>
       ) : null}
-      {axes && (
-        <details className="diagram-details">
-          <summary>{t("查看时空图", "Spacetime diagram")}</summary>
-          <SpacetimeDiagram beta={beta} mode={stage.diagram} />
-          <small>
-            {t(
-              "x 与 ct 使用相同的长度比例。",
-              "Equal length scales for x and ct.",
-            )}
-          </small>
-        </details>
-      )}
       {derivation && (
         <details className="diagram-details">
           <summary>

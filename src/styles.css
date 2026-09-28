@@ -921,3 +921,40 @@ td:first-child {
 .split-viewports .scene-viewport {
   padding-top: 66px;
 }
+.spacetime.classic {
+  max-height: none;
+  display: block;
+  margin: 8px 0;
+  overflow: visible;
+}
+.spacetime.classic text {
+  font-size: 12px;
+  fill: #ddd;
+}
+.minkowski-card p {
+  font-size: 11px;
+  line-height: 1.65;
+  color: #c5c5c5;
+}
+.spacetime-legend {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  display: grid;
+  gap: 7px;
+  font-size: 10px;
+  color: #bbb;
+}
+.spacetime-legend i {
+  display: inline-block;
+  width: 16px;
+  margin-right: 7px;
+  vertical-align: middle;
+  border-top: 2px solid #aaa;
+}
+.spacetime-legend .signal-key {
+  border-color: #ffda65;
+}
+.spacetime-legend .now-key {
+  border-top: 2px dotted white;
+}

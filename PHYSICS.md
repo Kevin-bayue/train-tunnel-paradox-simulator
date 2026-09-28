@@ -97,3 +97,19 @@ above); return easing remains smooth. Browser verification confirmed independent
 rotation in both directions, idle restoration, and no console errors. Build and
 all 93 physics checks passed. Touch pinch is supported by OrbitControls; physical
 touch-device verification was not performed.
+
+### Classic Minkowski diagram (2026-09-28)
+
+The explanation sidebar now displays an expanded spacetime diagram after the
+key takeaway in Stages 2/3, controlled by the existing Spacetime guide toggle.
+Stage 1 keeps its independent paradox models without revealing the resolution.
+The SVG uses equal station-coordinate x and ct scales, with a light cone,
+stationary gate worldlines x=±100, train boundaries x=beta*ct±150/gamma,
+and S2 relay paths from (0,-100) to (±100,0). Stage 3 adds ct′ and x′ axes
+and distinct constant-t′ slices through A and B; event times use the existing
+Lorentz transform. No Euclidean projection onto tilted axes is used.
+The current slice is ct=cT in S and ct=beta*x+cT/gamma² in S′, consistent
+with the simulator's t′=T/gamma anchor clock. Out-of-range slices are labeled.
+The diagram and explanation support both languages and beta=0. Build and 93
+physics tests pass; browser inspection confirmed both frame views and live SVG
+updates. Axis and light-speed invariants remain covered by existing tests.

@@ -1,150 +1,315 @@
+import { useId } from "react";
 import { useLanguage } from "../i18n";
-import { C, doorEvents, transformEventToTrainFrame } from "../physics/model";
-import type { Stage } from "../stages/stages";
+import {
+  C,
+  lorentzGamma,
+  transformEventToTrainFrame,
+  fmt,
+  type Frame,
+} from "../physics/model";
+import { MathFormula } from "./MathFormula";
+
+// All plotted coordinates are station S coordinates, with identical x and ct scales.
 export function SpacetimeDiagram({
   beta,
-  mode,
+  time,
+  frame,
 }: {
   beta: number;
-  mode: Stage["diagram"];
+  time: number;
+  frame: Frame;
 }) {
   const { t } = useLanguage();
-  const ox = 140,
-    oy = 175,
-    s = ["projection", "now"].includes(mode)
-      ? Math.min(
-          0.65,
-          76 /
-            Math.max(
-              1,
-              ...doorEvents.map((e) =>
-                Math.abs(
-                  (C * transformEventToTrainFrame(e.tunnel, beta).t) /
-                    Math.sqrt(1 - beta * beta),
-                ),
-              ),
-            ),
-        )
-      : 0.65;
-  const p = (x: number, ct: number) => `${ox + x * s},${oy - ct * s}`;
-  const advanced = ["axes", "projection", "now"].includes(mode);
+  const uid = useId().replace(/:/g, "");
+  const g = lorentzGamma(beta);
+  const trainFrame = frame === "train";
+  const extent = 320,
+    scale = 0.5,
+    origin = 190;
+  const x = (v: number) => origin + scale * v;
+  const y = (v: number) => origin - scale * v;
+  const line = (x1: number, ct1: number, x2: number, ct2: number) => ({
+    x1: x(x1),
+    y1: y(ct1),
+    x2: x(x2),
+    y2: y(ct2),
+  });
+  // At the simulator's train-frame time t'=T/gamma, ct = beta*x + c*T/gamma^2.
+  const intercept = C * time * (trainFrame ? 1 / (g * g) : 1);
+  const slope = trainFrame ? beta : 0;
+  const visibleNow = Math.abs(intercept) <= extent * (1 + Math.abs(slope));
+  const halfTrain = 150 / g;
+  const eventTime = (pos: number) =>
+    transformEventToTrainFrame({ x: pos, t: 0 }, beta).t;
   return (
-    <svg
-      className={`spacetime ${advanced ? "prominent" : ""}`}
-      viewBox="0 0 280 290"
-      role="img"
-      aria-label={t(
-        `时空图，x 与 ct 等比例，列车系坐标轴斜率参数 β = ${beta}`,
-        `Spacetime diagram, equal x and ct scale; train axis parameter beta = ${beta}.`,
-      )}
-    >
-      <defs>
-        <pattern id="grid" width="26" height="26" patternUnits="userSpaceOnUse">
-          <path
-            d="M 26 0 L 0 0 0 26"
-            fill="none"
-            stroke="#2f2f2f"
-            strokeWidth=".5"
-          />
-        </pattern>
-      </defs>
-      <rect width="280" height="290" fill="url(#grid)" />
-      <path d="M 15 175 H 266 M 140 277 V 12" stroke="#a6a6a6" fill="none" />
-      <text x="263" y="191">
-        x
-      </text>
-      <text x="147" y="18">
-        ct
-      </text>
-      {mode !== "minimal" && (
-        <line
-          x1="18"
-          y1="175"
-          x2="265"
-          y2="175"
-          stroke="#bcbcbc"
-          strokeWidth="2"
-        />
-      )}
-      {advanced && (
-        <>
-          <line
-            data-testid="x-prime-axis"
-            x1={ox - 120}
-            y1={oy + 120 * beta}
-            x2={ox + 120}
-            y2={oy - 120 * beta}
-            stroke="#b0b0b0"
-            strokeWidth="2"
-          />
-          <line
-            data-testid="ct-prime-axis"
-            x1={ox - 95 * beta}
-            y1={oy + 95}
-            x2={ox + 155 * beta}
-            y2={oy - 155}
-            stroke="#b0b0b0"
-            strokeWidth="2"
-          />
-          <text x={ox + 110} y={oy - 120 * beta - 8} fill="#b0b0b0">
-            x′
-          </text>
-          <text x={Math.min(250, ox + 155 * beta + 5)} y="30" fill="#b0b0b0">
-            ct′
-          </text>
-        </>
-      )}
-      {["projection", "now"].includes(mode) &&
-        doorEvents.map((e) => {
-          const t = transformEventToTrainFrame(e.tunnel, beta).t;
-          const ct = (C * t) / Math.sqrt(1 - beta * beta);
-          return (
-            <g key={e.id}>
-              <line
-                x1={ox + e.tunnel.x * s}
-                y1={oy}
-                x2={ox + beta * ct * s}
-                y2={oy - ct * s}
-                stroke={e.id === "A" ? "#58c9f2" : "#ffc66d"}
-                strokeDasharray="3 4"
-              />
-              <circle
-                cx={ox + beta * ct * s}
-                cy={oy - ct * s}
-                r="3"
-                fill={e.id === "A" ? "#58c9f2" : "#ffc66d"}
-              />
-              <text
-                x={ox + beta * ct * s + (e.id === "A" ? -6 : 6)}
-                y={oy - ct * s - 8}
-                textAnchor={e.id === "A" ? "end" : "start"}
-              >
-                {e.id}: {t.toFixed(3)} μs
-              </text>
-            </g>
-          );
-        })}
-      {!["minimal", "lengths"].includes(mode) &&
-        doorEvents.map((e) => (
-          <g key={e.id}>
-            <circle
-              cx={ox + e.tunnel.x * s}
-              cy={oy}
-              r="4"
-              fill={e.id === "A" ? "#58c9f2" : "#ffc66d"}
+    <section className="minkowski-card">
+      <h3>{t("闵可夫斯基时空图", "MINKOWSKI SPACETIME")}</h3>
+      <p className="spacetime-intro">
+        {t(
+          "同一组事件，以站台坐标绘图。向上是时间，向右是空间。",
+          "One set of events, drawn in station coordinates. Time runs up; space runs right.",
+        )}
+      </p>
+      <svg
+        className="spacetime classic"
+        viewBox="0 0 380 380"
+        role="img"
+        aria-label={t(
+          "等比例 x–ct 时空图，包含光锥、列车与闸门世界线、光信号和当前等时线",
+          "Equal-scale x–ct diagram with light cone, train and gate worldlines, light signals and the current simultaneity slice",
+        )}
+      >
+        <defs>
+          <clipPath id={`${uid}-clip`}>
+            <rect x="30" y="30" width="320" height="320" />
+          </clipPath>
+          <pattern
+            id={`${uid}-grid`}
+            width="40"
+            height="40"
+            x="30"
+            y="30"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 40 0 H 0 V 40"
+              fill="none"
+              stroke="#303030"
+              strokeWidth="0.5"
             />
-            <text x={ox + e.tunnel.x * s - 4} y={oy + 21}>
-              {e.id}
+          </pattern>
+          <marker
+            id={`${uid}-arrow`}
+            markerWidth="7"
+            markerHeight="7"
+            refX="6"
+            refY="3.5"
+            orient="auto"
+          >
+            <path d="M0 0 L7 3.5 L0 7" fill="#ddd" />
+          </marker>
+        </defs>
+        <rect
+          x="30"
+          y="30"
+          width="320"
+          height="320"
+          fill={`url(#${uid}-grid)`}
+        />
+        <g clipPath={`url(#${uid}-clip)`}>
+          <path
+            d={`M${x(-extent)},${y(-extent)} L${x(extent)},${y(extent)} L${x(-extent)},${y(extent)} L${x(extent)},${y(-extent)} Z`}
+            fill="#ffffff05"
+          />
+          {[-1, 1].map((sign) => (
+            <line
+              key={sign}
+              {...line(-extent, -sign * extent, extent, sign * extent)}
+              stroke="#777"
+              strokeDasharray="3 5"
+            />
+          ))}
+          <polygon
+            points={`${x(-beta * extent - halfTrain)},${y(-extent)} ${x(beta * extent - halfTrain)},${y(extent)} ${x(beta * extent + halfTrain)},${y(extent)} ${x(-beta * extent + halfTrain)},${y(-extent)}`}
+            fill="#75cfff12"
+          />
+          {[-1, 1].map((sign) => (
+            <line
+              key={sign}
+              {...line(
+                -beta * extent + sign * halfTrain,
+                -extent,
+                beta * extent + sign * halfTrain,
+                extent,
+              )}
+              stroke="#75cfff"
+              strokeOpacity="0.6"
+            />
+          ))}
+          {[-100, 100].map((pos) => (
+            <line
+              key={pos}
+              {...line(pos, -extent, pos, extent)}
+              stroke="#bcbcbc"
+              strokeWidth="1.5"
+            />
+          ))}
+          {trainFrame &&
+            [-100, 100].map((pos) => (
+              <line
+                key={pos}
+                {...line(
+                  -extent,
+                  beta * (-extent - pos),
+                  extent,
+                  beta * (extent - pos),
+                )}
+                stroke={pos < 0 ? "#75cfff" : "#ffda65"}
+                strokeDasharray="6 4"
+              />
+            ))}
+          <line
+            {...line(-extent, 0, extent, 0)}
+            stroke="#ddd"
+            markerEnd={`url(#${uid}-arrow)`}
+          />
+          <line
+            {...line(0, -extent, 0, extent)}
+            stroke="#ddd"
+            markerEnd={`url(#${uid}-arrow)`}
+          />
+          {trainFrame && (
+            <>
+              <line
+                data-testid="x-prime-axis"
+                {...line(-extent, -beta * extent, extent, beta * extent)}
+                stroke="#75cfff"
+                strokeWidth="2"
+              />
+              <line
+                data-testid="ct-prime-axis"
+                {...line(-beta * extent, -extent, beta * extent, extent)}
+                stroke="#75cfff"
+                strokeWidth="2"
+              />
+            </>
+          )}
+          <path
+            d={`M${x(-100)},${y(0)} L${x(0)},${y(-100)} L${x(100)},${y(0)}`}
+            fill="none"
+            stroke="#ffda65"
+            strokeWidth="2.5"
+          />
+          {visibleNow && (
+            <line
+              data-testid="current-simultaneity"
+              {...line(
+                -extent,
+                intercept - slope * extent,
+                extent,
+                intercept + slope * extent,
+              )}
+              stroke="white"
+              strokeWidth="2"
+              strokeDasharray="2 4"
+            />
+          )}
+        </g>
+        <text x="353" y="207">
+          x / m
+        </text>
+        <text x="196" y="20">
+          ct / m
+        </text>
+        <text x="174" y="205">
+          O
+        </text>
+        <text x="30" y="365">
+          −320
+        </text>
+        <text x="330" y="365">
+          320
+        </text>
+        <text x="7" y="35">
+          320
+        </text>
+        <text x="3" y="350">
+          −320
+        </text>
+        <text x="35" y="21">
+          {t("光锥：ct = ±x", "Light cone: ct = ±x")}
+        </text>
+        {trainFrame && (
+          <>
+            <text x={x(beta * extent) - 8} y="44" textAnchor="end">
+              ct′
+            </text>
+            <text x="332" y={y(beta * extent) - 7}>
+              x′
+            </text>
+          </>
+        )}
+        <circle cx={x(0)} cy={y(-100)} r="4" fill="#ffda65" />
+        <text x={x(0) + 8} y={y(-100) + 16}>
+          S2
+        </text>
+        {[-100, 100].map((pos, i) => (
+          <g key={pos}>
+            <circle
+              cx={x(pos)}
+              cy={y(0)}
+              r="5"
+              fill={i ? "#ffda65" : "#75cfff"}
+            />
+            <text x={x(pos)} y={y(0) - 12} textAnchor="middle">
+              {i ? "B" : "A"}
+            </text>
+            <text x={x(pos)} y="338" textAnchor="middle">
+              {pos} m
             </text>
           </g>
         ))}
-      <text x="12" y="269" className="svg-note">
-        {advanced
-          ? "x′: ct = βx   ·   ct′: x = βct"
-          : mode === "minimal"
-            ? t("x：位置 · ct：时间 × c", "x: position · ct: time × c")
-            : t("站台同时线：t = 0", "Station simultaneity: t = 0")}
-      </text>
-    </svg>
+      </svg>
+      <ul className="spacetime-legend">
+        <li>
+          <i className="worldline-key" />
+          {t(
+            "竖线：闸门 A、B；蓝色带：列车世界管",
+            "Vertical lines: gates A, B; blue band: train worldtube",
+          )}
+        </li>
+        <li>
+          <i className="signal-key" />
+          {t(
+            "黄色光路：S2 → A / B（斜率 ±1）",
+            "Yellow light paths: S2 → A / B (slope ±1)",
+          )}
+        </li>
+        <li>
+          <i className="now-key" />
+          {t(
+            "白色点线：动画当前的同时截面",
+            "White dotted line: the animation’s current time slice",
+          )}
+          {!visibleNow && t("（当前在图外）", " (currently outside plot)")}
+        </li>
+      </ul>
+      {trainFrame ? (
+        <>
+          <p>
+            {t(
+              beta === 0
+                ? "β = 0：两个坐标系重合，A、B 位于同一条等时线上。"
+                : "穿过 A、B 的虚线均平行于 x′ 轴，但不是同一条等时线。因此 t′B < t′A，出口先落下。",
+              beta === 0
+                ? "At β = 0 the frames coincide: A and B share the same time slice."
+                : "Dashed lines through A and B are parallel to x′, but are different time slices. Thus t′B < t′A: the exit drops first.",
+            )}
+          </p>
+          <MathFormula
+            tex={String.raw`t'_A=${fmt(eventTime(-100))},\quad t'_B=${fmt(eventTime(100))}\;\mu\mathrm{s}`}
+          />
+          <MathFormula
+            tex={String.raw`ct'=\gamma(ct-\beta x),\quad x'=\gamma(x-\beta ct)`}
+          />
+        </>
+      ) : (
+        <>
+          <p>
+            {t(
+              "A、B 位于同一条水平线 t = 0：两束光同时到达，两门同时开始下落。",
+              "A and B lie on the same horizontal line t = 0: both light pulses arrive and both gates start dropping simultaneously.",
+            )}
+          </p>
+          <MathFormula tex={String.raw`t_A=t_B=0,\quad \Delta t=0`} />
+        </>
+      )}
+      <small>
+        {t(
+          "x 与 ct 等比例，光线呈 45°。本图是事件坐标图，不是相机看到的光学图像。",
+          "Equal scales for x and ct make light rays 45°. This is an event-coordinate diagram, not an optical camera view.",
+        )}
+      </small>
+    </section>
   );
 }
