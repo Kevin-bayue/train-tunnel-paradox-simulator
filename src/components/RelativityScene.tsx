@@ -576,9 +576,9 @@ function World(p: SceneProps) {
     );
     const poses = {
       Overview: [focus + 5 * fit, 6.3 * fit, 12 * fit],
-      // The oblique gate-view angle is only for Station S.
-      // Train S′ retains its original fixed side camera at x = 0.
-      Side: [focus + 4 * fit * (1 - b), 4.8 * fit, (15 + 2 * b) * fit],
+      // Side view has no longitudinal camera offset in either frame.
+      // Pull Station S back slightly; retain the fixed Train S′ pose.
+      Side: [focus, 4.8 * fit, (18.5 - 1.5 * b) * fit],
       Center: [focus + 2 * fit, 7 * fit, 12 * fit],
     };
     camera.position.lerp(new THREE.Vector3(...poses[p.camera]), ease);
