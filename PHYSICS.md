@@ -65,3 +65,5 @@ Outside gate slow motion, train-frame anchor playback runs at γ times the stati
 ### Camera and track visibility update
 
 Station-frame framing again follows the train/tunnel midpoint and widens with their separation. Side view uses a modest oblique angle so gate panels are visible. Train-frame framing remains fixed. Continuous rails and ballast span 800 scene units without longitudinal scaling or translation; instanced ties alone repeat at the contracted spacing with the station-world phase. This keeps track ends outside the viewing frustum and avoids translating a finite rail segment across the picture.
+
+The oblique Side-camera adjustment applies only to Station S. Train S′ retains the original fixed side pose (x=0, y=4.8×fit, z=17×fit, minimum fit=1.3), independently of playback. Continuous-track coverage remains enabled in both frames.

@@ -571,12 +571,14 @@ function World(p: SceneProps) {
     const stationSpan = Math.abs(stationTrainX) + 6;
     const fit = Math.max(
       1,
-      THREE.MathUtils.lerp(stationSpan / 12, 1, b),
+      THREE.MathUtils.lerp(stationSpan / 12, 1.3, b),
       (size.width < 500 ? 1.3 : 1) / (size.width / size.height),
     );
     const poses = {
       Overview: [focus + 5 * fit, 6.3 * fit, 12 * fit],
-      Side: [focus + 4 * fit, 4.8 * fit, 15 * fit],
+      // The oblique gate-view angle is only for Station S.
+      // Train S′ retains its original fixed side camera at x = 0.
+      Side: [focus + 4 * fit * (1 - b), 4.8 * fit, (15 + 2 * b) * fit],
       Center: [focus + 2 * fit, 7 * fit, 12 * fit],
     };
     camera.position.lerp(new THREE.Vector3(...poses[p.camera]), ease);
