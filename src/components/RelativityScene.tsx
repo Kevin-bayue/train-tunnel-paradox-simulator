@@ -33,6 +33,7 @@ export type SceneProps = {
   lengths: boolean;
   paradox?: boolean;
   introTime?: number;
+  paradoxFrame?: "station" | "train";
 };
 const SCALE = 0.025;
 // One camera owner for both the paradox comparison and the explanation scenes.
@@ -89,7 +90,7 @@ function useSceneCamera(resetKey: string) {
     if (
       state.mode === "manual" &&
       !state.active &&
-      performance.now() - state.last > 5000
+      performance.now() - state.last > 2000
     )
       state.mode = "returning";
     if (state.mode === "manual") {
@@ -514,29 +515,32 @@ function ParadoxWorld({
   active,
   time,
   driveCamera,
+  trainFrame,
 }: {
   beta: number;
   active: boolean;
   time: number;
   driveCamera: CameraDriver;
+  trainFrame: boolean;
 }) {
-  const { camera, size, gl } = useThree();
+  const { size, gl } = useThree();
   const snap = introSnapshot(time, beta);
   const g = lorentzGamma(beta),
     trainX = beta * C * snap.time * SCALE,
     tunnelX = ((-beta * C * snap.wrongTime) / g) * SCALE;
   useFrame((_, dt) => {
     if (!active) return;
-    const lo = Math.min(-3.75, trainX - 3.75 / g, tunnelX - 2.5 / g, -2.5);
-    const hi = Math.max(3.75, trainX + 3.75 / g, tunnelX + 2.5 / g, 2.5);
-    const fit = Math.max(
-      1,
-      (hi - lo + 1) / ((16.5 * size.width) / size.height),
-    );
+    const lo = trainFrame
+      ? Math.min(-3.75, tunnelX - 2.5 / g)
+      : Math.min(-2.5, trainX - 3.75 / g);
+    const hi = trainFrame
+      ? Math.max(3.75, tunnelX + 2.5 / g)
+      : Math.max(2.5, trainX + 3.75 / g);
+    const fit = Math.max(1, (hi - lo + 1) / ((10 * size.width) / size.height));
     const focus = (lo + hi) / 2;
     driveCamera(
-      new THREE.Vector3(focus + 1.8 * fit, 5.8, 21 * fit),
-      new THREE.Vector3(focus, 4.8, 0),
+      new THREE.Vector3(focus, 4.5 * fit, 15 * fit),
+      new THREE.Vector3(focus, 1.6, 0),
       dt,
       1 - Math.exp(-dt * 8),
     );
@@ -545,8 +549,8 @@ function ParadoxWorld({
   });
   return (
     <group visible={active} name="two-frame-paradox">
-      {[false, true].map((trainFrame, i) => (
-        <group key={i} position={[0, trainFrame ? 0 : 7, 0]}>
+      {[trainFrame].map((trainFrame) => (
+        <group key={String(trainFrame)}>
           <group position={[trainFrame ? tunnelX : 0, 0, 0]}>
             <Track />
             <Tunnel
@@ -842,6 +846,7 @@ function World(p: SceneProps) {
       </group>
       <ParadoxWorld
         driveCamera={driveCamera}
+        trainFrame={p.paradoxFrame === "train"}
         beta={p.beta}
         active={!!p.paradox}
         time={p.introTime ?? 0}
@@ -849,22 +854,44 @@ function World(p: SceneProps) {
     </>
   );
 }
-export function RelativityScene(props: SceneProps) {
+function SceneCanvas(props: SceneProps) {
   const { t } = useLanguage();
   return (
     <Canvas
-      camera={{ position: [5, 6.3, 12], fov: 43, near: 0.1, far: 300 }}
+      camera={{ position: [0, 4.5, 15], fov: 43, near: 0.1, far: 300 }}
       dpr={[1, 2]}
       gl={{ antialias: true }}
       onCreated={({ gl, scene }) => {
         gl.domElement.dataset.worldId = scene.uuid;
       }}
-      aria-label={t(
-        "持续运行的 3D 列车与隧道实验",
-        "Persistent 3D train and tunnel experiment",
-      )}
+      aria-label={
+        props.paradox
+          ? props.paradoxFrame === "train"
+            ? t("列车系独立 3D 模型", "Independent train-frame 3D model")
+            : t("站台系独立 3D 模型", "Independent station-frame 3D model")
+          : t(
+              "持续运行的 3D 列车与隧道实验",
+              "Persistent 3D train and tunnel experiment",
+            )
+      }
     >
       <World {...props} />
     </Canvas>
+  );
+}
+export function RelativityScene(props: SceneProps) {
+  return (
+    <div
+      className={`scene-viewports ${props.paradox ? "split-viewports" : ""}`}
+    >
+      <div className="scene-viewport">
+        <SceneCanvas {...props} paradoxFrame="station" />
+      </div>
+      {props.paradox && (
+        <div className="scene-viewport">
+          <SceneCanvas {...props} paradoxFrame="train" />
+        </div>
+      )}
+    </div>
   );
 }

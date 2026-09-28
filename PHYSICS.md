@@ -85,3 +85,15 @@ Validation: build succeeded; 62 current and 31 archived physics checks passed.
 Browser drag in Stage 1 and wheel zoom in paused Stage 3 changed camera position
 without changing world ID or gate/geometry state. Stage 1 returned to its exact
 default after idle. Stage 3 retained trainX = 0 and default [0, 6.24, 22.1].
+
+### Independent Stage 1 viewports (2026-09-28)
+
+Stage 1 now uses two clipped WebGL canvases, each with its own scene, camera and
+OrbitControls. The station and hypothetical train-frame models share only the
+intro playback clock; dragging either viewport cannot rotate or obscure the other.
+Headers have reserved space above each model. The first canvas persists into
+Stages 2/3. All camera idle delays are now 2 seconds (superseding the 5 seconds
+above); return easing remains smooth. Browser verification confirmed independent
+rotation in both directions, idle restoration, and no console errors. Build and
+all 93 physics checks passed. Touch pinch is supported by OrbitControls; physical
+touch-device verification was not performed.

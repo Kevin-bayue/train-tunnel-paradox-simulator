@@ -894,3 +894,30 @@ td:first-child {
 .timeline-marker b {
   font-weight: 400;
 }
+
+/* Separate clipping surfaces and controls prevent the two frame models overlapping. */
+.scene-viewports {
+  height: 100%;
+}
+.scene-viewport {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.split-viewports {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  padding-bottom: 42px;
+}
+.split-viewports .scene-viewport + .scene-viewport {
+  border-top: 1px solid #363636;
+}
+.paradox-scene .paradox-label.train {
+  top: calc((100% - 42px) / 2 + 3px);
+}
+.paradox-scene {
+  height: 620px;
+}
+.split-viewports .scene-viewport {
+  padding-top: 66px;
+}
